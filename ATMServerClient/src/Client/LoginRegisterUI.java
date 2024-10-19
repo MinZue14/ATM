@@ -48,14 +48,23 @@ public class LoginRegisterUI {
             public void actionPerformed(ActionEvent e) {
                 String username = LoginRegisterUI.this.usernameField.getText();
                 String password = new String(LoginRegisterUI.this.passwordField.getPassword());
+
+                // Kiểm tra nếu tài khoản đang hoạt động
+                if (LoginRegisterUI.this.database.isUserLoggedIn(username)) {
+                    JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Tài khoản này đang được đăng nhập ở nơi khác.");
+                    return; // Không cho phép đăng nhập
+                }
+
+                // Nếu tài khoản chưa đăng nhập, tiến hành xác thực
                 if (LoginRegisterUI.this.database.authenticateUser(username, password)) {
+                    // Đăng nhập thành công, cập nhật trạng thái tài khoản
+                    LoginRegisterUI.this.database.setUserLoggedIn(username, true);
                     JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Đăng nhập thành công!");
                     new MainUI(username);
                     LoginRegisterUI.this.frame.dispose();
                 } else {
                     JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Tên đăng nhập hoặc mật khẩu không đúng.");
                 }
-
             }
         });
         registerButton.addActionListener(new ActionListener() {
