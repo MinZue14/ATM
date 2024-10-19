@@ -66,7 +66,34 @@ public class Database {
             return false;
         }
     }
+        // Phương thức kiểm tra nếu người dùng đang đăng nhập
+    public boolean isUserLoggedIn(String username) {
+        try {
+            String query = "SELECT is_logged_in FROM users WHERE username = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, username);
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getBoolean("is_logged_in");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Trả về false nếu không tìm thấy tài khoản hoặc lỗi
+    }
 
+    // Phương thức cập nhật trạng thái đăng nhập
+    public void setUserLoggedIn(String username, boolean isLoggedIn) {
+        try {
+            String query = "UPDATE users SET is_logged_in = ? WHERE username = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setBoolean(1, isLoggedIn);
+            statement.setString(2, username);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     public int getAccountIdByName(String accountName) {
         int accountId = -1;
         String query = "SELECT id FROM users WHERE username = ?";
