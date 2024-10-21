@@ -91,7 +91,7 @@ public class MainUI {
         });
 
         logoutButton.addActionListener(e -> {
-            this.database.deleteServerId(this.username); // Xóa server_id từ database
+//            this.database.deleteServerId(this.username); // Xóa server_id từ database
             this.frame.dispose(); // Đóng cửa sổ
         });
 
