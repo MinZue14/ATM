@@ -41,7 +41,7 @@ public class Database {
 
     public boolean authenticateUser(String username, String password) {
         try {
-            String query = "SELECT * FROM users WHERE username = ? AND password = ? AND server_id IS NULL";
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
             PreparedStatement statement = this.connection.prepareStatement(query);
             statement.setString(1, username);
             statement.setString(2, password);
@@ -64,34 +64,6 @@ public class Database {
         } catch (SQLException var6) {
             var6.printStackTrace();
             return false;
-        }
-    }
-    // Phương thức kiểm tra nếu người dùng đang đăng nhập
-    public boolean isUserLoggedIn(String username, String serverId) {
-        try {
-            String query = "SELECT server_id FROM users WHERE username = ?";
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setString(1, username);
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()) {
-                return rs.getString("server_id") != null && rs.getString("server_id").equals(serverId);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public void setUserLoggedIn(String username, boolean isLoggedIn, String serverId) {
-        try {
-            String query = "UPDATE users SET server_id = ? WHERE username = ?";
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setBoolean(1, isLoggedIn);
-            statement.setString(2, isLoggedIn ? serverId : null); // Nếu không đăng nhập thì set server_id = null
-            statement.setString(3, username);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -375,16 +347,6 @@ public class Database {
         } catch (SQLException var8) {
             var8.printStackTrace();
             return false;
-        }
-    }
-    public void deleteServerId(String username) {
-        String query = "UPDATE users SET server_id = NULL WHERE username = ?";
-
-        try (PreparedStatement pstmt = this.connection.prepareStatement(query)) {
-            pstmt.setString(1, username);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }
