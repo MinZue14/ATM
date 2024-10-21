@@ -146,6 +146,30 @@ public class Database {
 
         return false;
     }
+    public boolean isUserLoggedIn(String username) {
+        String query = "SELECT is_logged_in FROM users WHERE username = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, username);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getBoolean("is_logged_in");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void setUserLoggedIn(String username, boolean isLoggedIn) {
+        String query = "UPDATE users SET is_logged_in = ? WHERE username = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setBoolean(1, isLoggedIn);
+            statement.setString(2, username);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public boolean transfer(String fromAccount, String toAccount, double amount, String note) {
         boolean var12;

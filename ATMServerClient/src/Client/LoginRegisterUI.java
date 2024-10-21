@@ -1,15 +1,9 @@
 package Client;
 
 import database.Database;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 public class LoginRegisterUI {
     private JFrame frame;
@@ -18,69 +12,89 @@ public class LoginRegisterUI {
     private Database database = new Database();
 
     public LoginRegisterUI() {
-        this.createUI();
+        createUI();
     }
 
     private void createUI() {
-        this.frame = new JFrame("ATM - Login");
-        this.frame.setSize(400, 300);
-        this.frame.setDefaultCloseOperation(3);
-        this.frame.setLayout((LayoutManager)null);
-        JLabel userLabel = new JLabel("Username:");
-        userLabel.setBounds(50, 50, 100, 25);
-        this.frame.add(userLabel);
-        this.usernameField = new JTextField(20);
-        this.usernameField.setBounds(150, 50, 200, 25);
-        this.frame.add(this.usernameField);
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordLabel.setBounds(50, 100, 100, 25);
-        this.frame.add(passwordLabel);
-        this.passwordField = new JPasswordField(20);
-        this.passwordField.setBounds(150, 100, 200, 25);
-        this.frame.add(this.passwordField);
-        JButton loginButton = new JButton("Login");
-        loginButton.setBounds(50, 150, 100, 25);
-        this.frame.add(loginButton);
-        JButton registerButton = new JButton("Register");
-        registerButton.setBounds(250, 150, 100, 25);
-        this.frame.add(registerButton);
-        loginButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String username = LoginRegisterUI.this.usernameField.getText();
-                String password = new String(LoginRegisterUI.this.passwordField.getPassword());
-                String currentServerId = "server1"; // Thay thế bằng ID của server hiện tại
+        frame = new JFrame("ATM - Đăng nhập");
+        frame.setSize(400, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
 
-                // Kiểm tra nếu tài khoản đang hoạt động trên server khác
-                if (LoginRegisterUI.this.database.isUserLoggedIn(username, currentServerId)) {
-                    JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Tài khoản này đang được đăng nhập ở nơi khác.");
-                    return; // Không cho phép đăng nhập
+        // Nhãn và trường nhập tên người dùng
+        JLabel userLabel = new JLabel("Tên người dùng:");
+        userLabel.setBounds(50, 50, 100, 25);
+        frame.add(userLabel);
+        usernameField = new JTextField(20);
+        usernameField.setBounds(150, 50, 200, 25);
+        frame.add(usernameField);
+
+        // Nhãn và trường nhập mật khẩu
+        JLabel passwordLabel = new JLabel("Mật khẩu:");
+        passwordLabel.setBounds(50, 100, 100, 25);
+        frame.add(passwordLabel);
+        passwordField = new JPasswordField(20);
+        passwordField.setBounds(150, 100, 200, 25);
+        frame.add(passwordField);
+
+        // Nút đăng nhập
+        JButton loginButton = new JButton("Đăng nhập");
+        loginButton.setBounds(50, 150, 100, 25);
+        frame.add(loginButton);
+
+        // Nút đăng ký
+        JButton registerButton = new JButton("Đăng ký");
+        registerButton.setBounds(250, 150, 100, 25);
+        frame.add(registerButton);
+
+        // Xử lý sự kiện đăng nhập
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                // Kiểm tra nếu tài khoản đang hoạt động
+                if (database.isUserLoggedIn(username)) {
+                    JOptionPane.showMessageDialog(frame, "Tài khoản này đang được đăng nhập ở nơi khác.");
+                    return;
                 }
 
                 // Nếu tài khoản chưa đăng nhập, tiến hành xác thực
-                if (LoginRegisterUI.this.database.authenticateUser(username, password)) {
+                if (database.authenticateUser(username, password)) {
                     // Đăng nhập thành công, cập nhật trạng thái tài khoản
-                    LoginRegisterUI.this.database.setUserLoggedIn(username, true, currentServerId);
-                    JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Đăng nhập thành công!");
+                    database.setUserLoggedIn(username, true);
+                    JOptionPane.showMessageDialog(frame, "Đăng nhập thành công!");
                     new MainUI(username);
-                    LoginRegisterUI.this.frame.dispose();
+                    frame.dispose();
                 } else {
-                    JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Tên đăng nhập hoặc mật khẩu không đúng.");
+                    JOptionPane.showMessageDialog(frame, "Tên đăng nhập hoặc mật khẩu không đúng.");
                 }
             }
         });
+
+        // Xử lý sự kiện đăng ký
         registerButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                String username = LoginRegisterUI.this.usernameField.getText();
-                String password = new String(LoginRegisterUI.this.passwordField.getPassword());
-                if (LoginRegisterUI.this.database.addUser(username, password)) {
-                    JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Đăng ký thành công!");
-                } else {
-                    JOptionPane.showMessageDialog(LoginRegisterUI.this.frame, "Tên đăng nhập đã tồn tại.");
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                // Kiểm tra xem tài khoản đã tồn tại hay chưa
+                if (database.accountExists(username)) {
+                    JOptionPane.showMessageDialog(frame, "Tên đăng nhập đã tồn tại.");
+                    return;
                 }
 
+                if (database.addUser(username, password)) {
+                    JOptionPane.showMessageDialog(frame, "Đăng ký thành công!");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Lỗi khi đăng ký tài khoản.");
+                }
             }
         });
-        this.frame.setVisible(true);
+
+        frame.setVisible(true);
     }
 
     public static void main(String[] args) {
