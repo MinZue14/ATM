@@ -56,6 +56,11 @@ public class MainUI {
         JButton reloadButton = new JButton("Cập Nhật Số Dư");
         reloadButton.setBounds(10, 200, 310, 25);
         reloadButton.setBackground(new Color(255, 204, 153));
+
+        JButton logoutButton = new JButton("Đăng Xuất");
+        logoutButton.setBounds(10, 230, 310, 25);
+        logoutButton.setBackground(new Color(255, 102, 102));
+
         this.frame.add(welcomeLabel);
         this.frame.add(statusLabel);
         this.frame.add(this.balanceLabel);
@@ -64,6 +69,8 @@ public class MainUI {
         this.frame.add(transferButton);
         this.frame.add(historyButton);
         this.frame.add(reloadButton);
+        this.frame.add(logoutButton);
+
         depositButton.addActionListener((e) -> {
             new DepositUI(this.username);
         });
@@ -82,6 +89,11 @@ public class MainUI {
             String var10001 = this.formatCurrency(newBalance);
             var10000.setText("Số Dư Hiện Tại: " + var10001 + " VND");
         });
+        logoutButton.addActionListener((e) -> {
+            this.database.deleteServerId(this.username); // Xóa server_id từ database
+            this.frame.dispose(); // Đóng cửa sổ
+        });
+
         this.frame.setVisible(true);
     }
 
