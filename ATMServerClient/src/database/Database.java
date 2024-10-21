@@ -23,6 +23,40 @@ public class Database {
         }
 
     }
+    public boolean isUserLoggedIn(String username, String serverId) {
+        String query = "SELECT * FROM users WHERE username = ? AND server_id = ?";
+        try {
+            PreparedStatement statement = this.connection.prepareStatement(query);
+            statement.setString(1, username);
+            statement.setString(2, serverId);
+            ResultSet resultSet = statement.executeQuery();
+            return resultSet.next(); // Nếu có kết quả, có nghĩa là người dùng đang đăng nhập
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public void setUserLoggedIn(String username, boolean loggedIn, String serverId) {
+        try {
+            if (loggedIn) {
+                // Thêm bản ghi mới vào bảng user_sessions khi người dùng đăng nhập
+                String insertQuery = "INSERT INTO users (username, server_id) VALUES (?, ?)";
+                PreparedStatement insertStatement = this.connection.prepareStatement(insertQuery);
+                insertStatement.setString(1, username);
+                insertStatement.setString(2, serverId);
+                insertStatement.executeUpdate();
+            } else {
+                // Xóa bản ghi khi người dùng đăng xuất
+                String deleteQuery = "DELETE FROM users WHERE username = ? AND server_id = ?";
+                PreparedStatement deleteStatement = this.connection.prepareStatement(deleteQuery);
+                deleteStatement.setString(1, username);
+                deleteStatement.setString(2, serverId);
+                deleteStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public boolean addUser(String username, String password) {
         try {
