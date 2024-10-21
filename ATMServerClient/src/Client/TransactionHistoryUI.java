@@ -3,11 +3,15 @@ package Client;
 import database.Database;
 import database.Transaction;
 import java.awt.LayoutManager;
-import java.util.Iterator;
+import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 
 public class TransactionHistoryUI {
     private JFrame frame;
@@ -22,22 +26,67 @@ public class TransactionHistoryUI {
 
     private void createUI() {
         this.frame = new JFrame("ATM - Lịch Sử Giao Dịch");
-        this.frame.setDefaultCloseOperation(2);
+        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.setSize(600, 400);
-        this.frame.setLayout((LayoutManager)null);
+        this.frame.setLayout(null);
+
         String[] columns = new String[]{"Thời Gian", "Tài Khoản Gửi", "Tài Khoản Nhận", "Số Tiền", "Ghi Chú"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
         JTable table = new JTable(model);
-        Iterator var4 = this.database.getTransactionHistory(this.username).iterator();
 
-        while(var4.hasNext()) {
-            Transaction transaction = (Transaction)var4.next();
-            model.addRow(new Object[]{transaction.getDate(), transaction.getFromAccount(), transaction.getToAccount(), transaction.getAmount(), transaction.getNote()});
+        // Lấy lịch sử giao dịch từ database local
+        List<Transaction> transactions = this.database.getTransactionHistory(this.username);
+        for (Transaction transaction : transactions) {
+            model.addRow(new Object[]{
+                    transaction.getDate(),
+                    transaction.getFromAccount(),
+                    transaction.getToAccount(),
+                    transaction.getAmount(),
+                    transaction.getNote()
+            });
         }
+
+        // Đồng bộ hóa với các server
+        syncTransactionHistoryWithServers(model);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBounds(10, 10, 560, 340);
         this.frame.add(scrollPane);
         this.frame.setVisible(true);
+    }
+
+    private void syncTransactionHistoryWithServers(DefaultTableModel model) {
+        String[] serverAddresses = {
+                "192.168.1.18", // Địa chỉ IP của server 2
+                "192.168.1.19", // Địa chỉ IP của server 3
+        };
+
+        for (String serverAddress : serverAddresses) {
+            try (Socket socket = new Socket(serverAddress, 12346); // Sử dụng cổng 12346 cho các server
+                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                // Gửi yêu cầu lấy lịch sử giao dịch
+                socket.getOutputStream().write(("GET_TRANSACTION_HISTORY\n" + this.username + "\n").getBytes());
+                socket.getOutputStream().flush();
+
+                String response;
+                while ((response = in.readLine()) != null) {
+                    // Phân tích dữ liệu trả về từ server
+                    String[] data = response.split(",");
+                    if (data.length == 5) { // Đảm bảo có đủ dữ liệu
+                        model.addRow(new Object[]{
+                                data[0], // Thời gian
+                                data[1], // Tài khoản gửi
+                                data[2], // Tài khoản nhận
+                                data[3], // Số tiền
+                                data[4]  // Ghi chú
+                        });
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Không thể đồng bộ hóa với server " + serverAddress);
+                e.printStackTrace();
+            }
+        }
     }
 }
